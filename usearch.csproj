@@ -1,10 +1,27 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Platforms>x64</Platforms>
+		<LangVersion>latest</LangVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<OutputType>Exe</OutputType>
+
+		<DefineConstants Condition="'$(OS)' == 'Windows_NT'">WINDOWS</DefineConstants>
+		<DefineConstants Condition="$([System.String]::new('$(OS)').StartsWith('Unix'))">LINUX</DefineConstants>
+	</PropertyGroup>
+
+	<Target Name="usearch" BeforeTargets="Build">
+		<PropertyGroup>
+			<MakeProject>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\usearch\c'))</MakeProject>
+			<Command>"$(VsInstallRoot)\VC\Auxiliary\Build\vcvars64.bat" &amp;&amp; cl.exe /W4 /O2 /LD /Fe"libusearch.dll" lib.cpp /I. /I../include /I../fp16/include /I../robin-map/include</Command>
+		</PropertyGroup>
+		<WriteLinesToFile File="$(MakeProject)\build.bat" Lines="$(Command)" Overwrite="true" />
+		<Exec WorkingDirectory="$(MakeProject)" Command="cmd /C build.bat" />
+		<Delete Files="$(MakeProject)\build.bat" />
+		<Copy SourceFiles="$(MakeProject)\libusearch.dll" DestinationFolder="$(OutDir)" />
+	</Target>
 
 </Project>
