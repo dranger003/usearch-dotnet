@@ -51,128 +51,116 @@ namespace usearch
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_init")]
-        private static extern usearch_index_t _usearch_init(ref usearch_init_options_t options, byte** error);
+        private static extern usearch_index_t _usearch_init(ref usearch_init_options_t options, out nint error);
 
         public static usearch_index_t usearch_init(ref usearch_init_options_t options, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            var result = _usearch_init(ref options, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            var result = _usearch_init(ref options, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
             return result;
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_free")]
-        private static extern void _usearch_free(usearch_index_t index, byte** error);
+        private static extern void _usearch_free(usearch_index_t index, out nint error);
 
         public static void usearch_free(usearch_index_t index, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            _usearch_free(index, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            _usearch_free(index, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_save")]
-        private static extern void _usearch_save(usearch_index_t index, string path, byte** error);
+        private static extern void _usearch_save(usearch_index_t index, string path, out nint error);
 
         public static void usearch_save(usearch_index_t index, string path, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            _usearch_save(index, path, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            _usearch_save(index, path, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_load")]
-        private static extern void _usearch_load(usearch_index_t index, string path, byte** error);
+        private static extern void _usearch_load(usearch_index_t index, string path, out nint error);
 
         public static void usearch_load(usearch_index_t index, string path, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            _usearch_load(index, path, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            _usearch_load(index, path, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_view")]
-        private static extern void _usearch_view(usearch_index_t index, string path, byte** error);
+        private static extern void _usearch_view(usearch_index_t index, string path, out nint error);
 
         public static void usearch_view(usearch_index_t index, string path, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            _usearch_view(index, path, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            _usearch_view(index, path, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_size")]
-        private static extern nuint _usearch_size(usearch_index_t index, byte** error);
+        private static extern nuint _usearch_size(usearch_index_t index, out nint error);
 
         public static nuint usearch_size(usearch_index_t index, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            var result = _usearch_size(index, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            var result = _usearch_size(index, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
             return result;
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_capacity")]
-        private static extern nuint _usearch_capacity(usearch_index_t index, byte** error);
+        private static extern nuint _usearch_capacity(usearch_index_t index, out nint error);
 
         public static nuint usearch_capacity(usearch_index_t index, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            var result = _usearch_capacity(index, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            var result = _usearch_capacity(index, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
             return result;
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_dimensions")]
-        private static extern nuint _usearch_dimensions(usearch_index_t index, byte** error);
+        private static extern nuint _usearch_dimensions(usearch_index_t index, out nint error);
 
         public static nuint usearch_dimensions(usearch_index_t index, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            var result = _usearch_dimensions(index, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            var result = _usearch_dimensions(index, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
             return result;
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_connectivity")]
-        private static extern nuint _usearch_connectivity(usearch_index_t index, byte** error);
+        private static extern nuint _usearch_connectivity(usearch_index_t index, out nint error);
 
         public static nuint usearch_connectivity(usearch_index_t index, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            var result = _usearch_connectivity(index, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            var result = _usearch_connectivity(index, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
             return result;
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_reserve")]
-        private static extern void _usearch_reserve(usearch_index_t index, nuint capacity, byte** error);
+        private static extern void _usearch_reserve(usearch_index_t index, nuint capacity, out nint error);
 
         public static void usearch_reserve(usearch_index_t index, nuint capacity, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            _usearch_reserve(index, capacity, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            _usearch_reserve(index, capacity, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_add")]
-        private static extern void _usearch_add(usearch_index_t index, usearch_label_t label, void* vector, usearch_scalar_kind_t vector_kind, byte** error);
+        private static extern void _usearch_add(usearch_index_t index, usearch_label_t label, void* vector, usearch_scalar_kind_t vector_kind, out nint error);
 
         public static void usearch_add(usearch_index_t index, usearch_label_t label, void* vector, usearch_scalar_kind_t vector_kind, out usearch_error_t? error)
         {
-            byte* e = null;
-            _usearch_add(index, label, vector, vector_kind, &e);
-            error = Marshal.PtrToStringAnsi((nint)e);
+            _usearch_add(index, label, vector, vector_kind, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_contains")]
-        private static extern bool _usearch_contains(usearch_index_t index, usearch_label_t label, byte** error);
+        private static extern bool _usearch_contains(usearch_index_t index, usearch_label_t label, out nint error);
 
         public static bool usearch_contains(usearch_index_t index, usearch_label_t label, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            var result = _usearch_contains(index, label, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            var result = _usearch_contains(index, label, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
             return result;
         }
 
@@ -184,7 +172,7 @@ namespace usearch
             nuint results_limit,
             usearch_label_t[] found_labels,
             usearch_distance_t[] found_distances,
-            byte** error
+            out nint error
         );
 
         public static nuint usearch_search(
@@ -197,31 +185,28 @@ namespace usearch
             out usearch_error_t? error
         )
         {
-            byte* ptr = null;
-            var result = _usearch_search(index, query_vector, query_kind, results_limit, found_labels, found_distances, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            var result = _usearch_search(index, query_vector, query_kind, results_limit, found_labels, found_distances, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
             return result;
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_get")]
-        private static extern bool _usearch_get(usearch_index_t index, usearch_label_t label, nint vector, usearch_scalar_kind_t vector_kind, byte** error);
+        private static extern bool _usearch_get(usearch_index_t index, usearch_label_t label, nint vector, usearch_scalar_kind_t vector_kind, out nint error);
 
         public static bool usearch_get(usearch_index_t index, usearch_label_t label, nint vector, usearch_scalar_kind_t vector_kind, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            var result = _usearch_get(index, label, vector, vector_kind, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            var result = _usearch_get(index, label, vector, vector_kind, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
             return result;
         }
 
         [DllImport("libusearch", EntryPoint = "usearch_remove")]
-        private static extern void _usearch_remove(usearch_index_t index, usearch_label_t label, byte** error);
+        private static extern void _usearch_remove(usearch_index_t index, usearch_label_t label, out nint error);
 
         public static void usearch_remove(usearch_index_t index, usearch_label_t label, out usearch_error_t? error)
         {
-            byte* ptr = null;
-            _usearch_remove(index, label, &ptr);
-            error = Marshal.PtrToStringAnsi((nint)ptr);
+            _usearch_remove(index, label, out var ptr);
+            error = Marshal.PtrToStringAnsi(ptr);
         }
 
         static usearch_init_options_t create_options(nuint vector_dimension)
