@@ -16,7 +16,7 @@
 	<Target Name="usearch" BeforeTargets="Build">
 		<PropertyGroup>
 			<MakeProject>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\usearch\c'))</MakeProject>
-			<Command>"$(VsInstallRoot)\VC\Auxiliary\Build\vcvars64.bat" &amp;&amp; cl.exe /W4 /O2 /LD /Fe"libusearch.dll" lib.cpp /I. /I../include /I../fp16/include /I../robin-map/include</Command>
+			<Command>"$(VsInstallRoot)\VC\Auxiliary\Build\vcvars64.bat" &amp;&amp; cd "$(MakeProject)" &amp;&amp; cl.exe /W4 /O2 /LD /Fe"libusearch.dll" lib.cpp /I. /I../include /I../fp16/include /I../robin-map/include</Command>
 		</PropertyGroup>
 		<WriteLinesToFile File="$(MakeProject)\build.bat" Lines="$(Command)" Overwrite="true" />
 		<Exec WorkingDirectory="$(MakeProject)" Command="cmd /C build.bat" />
