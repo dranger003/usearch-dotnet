@@ -1,11 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 
 namespace usearch
 {
     using usearch_index_t = System.IntPtr;
-    using usearch_label_t = System.UIntPtr;
+    using usearch_label_t = System.UInt32;
     using usearch_distance_t = System.Single;
     using usearch_error_t = System.String;
 
@@ -209,6 +208,39 @@ namespace usearch
             error = Marshal.PtrToStringAnsi(ptr);
         }
 
+        static void parse_vectors_from_file(string file_path, out nuint count, out nuint dimension, out float[] data)
+        {
+            // Open the file
+            var fi = new FileInfo(file_path);
+            Debug.Assert(fi.Exists, "Failed to get metadata of the file");
+
+            using FileStream fs = new FileStream(file_path, FileMode.Open, FileAccess.Read);
+            using BinaryReader reader = new BinaryReader(fs);
+
+            // Read vectors dimension and calculate count
+            var dim = reader.ReadInt32();
+            Debug.Assert(fi.Length % ((dim + 1) * sizeof(float)) == 0, "File does not contain a whole number of vectors");
+            dimension = (nuint)dim;
+            count = (nuint)(fi.Length / ((dim + 1) * sizeof(float)));
+
+            // Allocate memory for the vectors' data
+            data = new float[count * dimension];
+            Debug.Assert(data != null, "Failed to allocate memory");
+
+            // Read the data
+            for (nuint i = 0; i < count; ++i)
+            {
+                var bytes = reader.ReadBytes((int)dimension * sizeof(float));
+                Buffer.BlockCopy(bytes, 0, data ?? new float[0], (int)(i * dimension * sizeof(float)), bytes.Length);
+
+                if (i == count - 1)
+                    break;
+
+                // Skip
+                reader.ReadSingle();
+            }
+        }
+
         static usearch_init_options_t create_options(nuint vector_dimension)
         {
             usearch_init_options_t opts;
@@ -253,7 +285,7 @@ namespace usearch
             Console.Write("Test: Index Initialization - PASSED\n");
         }
 
-        static void test_add_vector<T>(nuint vectors_count, nuint vector_dimension, T* data, usearch_scalar_kind_t vector_kind)
+        static void test_add_vector(nuint vectors_count, nuint vector_dimension, float* data)
         {
             Console.Write("Test: Add Vector...\n");
 
@@ -262,10 +294,10 @@ namespace usearch
             usearch_reserve(idx, vectors_count, out error);
 
             // Add vectors
-            for (nuint i = 0; i < vectors_count; ++i)
+            for (uint i = 0; i < vectors_count; ++i)
             {
                 usearch_label_t label = i;
-                usearch_add(idx, label, data + i * vector_dimension, vector_kind, out error);
+                usearch_add(idx, label, data + i * vector_dimension, usearch_scalar_kind_t.usearch_scalar_f32_k, out error);
                 Debug.Assert(error == null, error);
             }
 
@@ -273,18 +305,18 @@ namespace usearch
             Debug.Assert(usearch_capacity(idx, out error) == vectors_count, error);
 
             // Check vectors in the index
-            for (nuint i = 0; i < vectors_count; ++i)
+            for (uint i = 0; i < vectors_count; ++i)
             {
                 usearch_label_t label = i;
                 Debug.Assert(usearch_contains(idx, label, out error), error);
             }
-            Debug.Assert(!usearch_contains(idx, unchecked((nuint)(-1)), out error), error); // Non existing label
+            Debug.Assert(!usearch_contains(idx, unchecked((uint)(-1)), out error), error); // Non existing label
 
             usearch_free(idx, out error);
             Console.Write("Test: Add Vector - PASSED\n");
         }
 
-        static void test_find_vector<T>(nuint vectors_count, nuint vector_dimension, T* data, usearch_scalar_kind_t vector_kind)
+        static void test_find_vector(nuint vectors_count, nuint vector_dimension, float* data)
         {
             Console.Write("Test: Find Vector...\n");
 
@@ -293,24 +325,25 @@ namespace usearch
             usearch_reserve(idx, vectors_count, out error);
 
             // Create result buffers
-            nuint results_count = 10;
+            nuint results_count = Math.Min(vectors_count, 10);
             usearch_label_t[] labels = new usearch_label_t[results_count];
             float[] distances = new float[results_count];
             Debug.Assert(labels != null && distances != null, "Failed to allocate memory");
 
             // Add vectors
-            for (nuint i = 0; i < vectors_count; ++i)
+            for (uint i = 0; i < vectors_count; ++i)
             {
                 usearch_label_t label = i;
-                usearch_add(idx, label, data + i * vector_dimension, vector_kind, out error);
+                usearch_add(idx, label, data + i * vector_dimension, usearch_scalar_kind_t.usearch_scalar_f32_k, out error);
                 Debug.Assert(error == null, error);
             }
 
             // Find the vectors
-            for (nuint i = 0; i < vectors_count; i++)
+            for (uint i = 0; i < vectors_count; i++)
             {
                 void* query_vector = data + i * vector_dimension;
-                nuint found_count = usearch_search(idx, query_vector, vector_kind, results_count, labels, distances, out error);
+                nuint found_count =
+                    usearch_search(idx, query_vector, usearch_scalar_kind_t.usearch_scalar_f32_k, results_count, labels ?? new usearch_label_t[0], distances ?? new usearch_distance_t[0], out error);
                 Debug.Assert(error == null, error);
                 Debug.Assert((found_count = results_count) > 0, "Vector is missing");
             }
@@ -319,7 +352,7 @@ namespace usearch
             Console.Write("Test: Find Vector - PASSED\n");
         }
 
-        static void test_remove_vector<T>(nuint vectors_count, nuint vector_dimension, T* data, usearch_scalar_kind_t vector_kind)
+        static void test_remove_vector(nuint vectors_count, nuint vector_dimension, float* data)
         {
             Console.Write("Test: Remove Vector...\n");
 
@@ -328,15 +361,15 @@ namespace usearch
             usearch_reserve(idx, vectors_count, out error);
 
             // Add vectors
-            for (nuint i = 0; i < vectors_count; ++i)
+            for (uint i = 0; i < vectors_count; ++i)
             {
                 usearch_label_t label = i;
-                usearch_add(idx, label, data + i * vector_dimension, vector_kind, out error);
+                usearch_add(idx, label, data + i * vector_dimension, usearch_scalar_kind_t.usearch_scalar_f32_k, out error);
                 Debug.Assert(error == null, error);
             }
 
             // Remove the vectors
-            for (nuint i = 0; i < vectors_count; i++)
+            for (uint i = 0; i < vectors_count; i++)
             {
                 usearch_label_t label = i;
                 usearch_remove(idx, label, out error);
@@ -347,7 +380,7 @@ namespace usearch
             Console.Write("Test: Remove Vector - PASSED\n");
         }
 
-        static void test_save_load<T>(nuint vectors_count, nuint vector_dimension, T* data, usearch_scalar_kind_t vector_kind)
+        static void test_save_load(nuint vectors_count, nuint vector_dimension, float* data)
         {
             Console.Write("Test: Save/Load...\n");
 
@@ -356,10 +389,10 @@ namespace usearch
             usearch_reserve(idx, vectors_count, out error);
 
             // Add vectors
-            for (nuint i = 0; i < vectors_count; ++i)
+            for (uint i = 0; i < vectors_count; ++i)
             {
                 usearch_label_t label = i;
-                usearch_add(idx, label, data + i * vector_dimension, vector_kind, out error);
+                usearch_add(idx, label, data + i * vector_dimension, usearch_scalar_kind_t.usearch_scalar_f32_k, out error);
                 Debug.Assert(error == null, error);
             }
 
@@ -383,7 +416,7 @@ namespace usearch
             Debug.Assert(usearch_connectivity(idx, out error) == opts.connectivity, error);
 
             // Check vectors in the index
-            for (nuint i = 0; i < vectors_count; ++i)
+            for (uint i = 0; i < vectors_count; ++i)
             {
                 usearch_label_t label = i;
                 Debug.Assert(usearch_contains(idx, label, out error), error);
@@ -393,7 +426,7 @@ namespace usearch
             Console.Write("Test: Save/Load - PASSED\n");
         }
 
-        static void test_view<T>(nuint vectors_count, nuint vector_dimension, T* data, usearch_scalar_kind_t vector_kind)
+        static void test_view(nuint vectors_count, nuint vector_dimension, float* data)
         {
             Console.Write("Test: View...\n");
 
@@ -402,10 +435,10 @@ namespace usearch
             usearch_reserve(idx, vectors_count, out error);
 
             // Add vectors
-            for (nuint i = 0; i < vectors_count; ++i)
+            for (uint i = 0; i < vectors_count; ++i)
             {
                 usearch_label_t label = i;
-                usearch_add(idx, label, data + i * vector_dimension, vector_kind, out error);
+                usearch_add(idx, label, data + i * vector_dimension, usearch_scalar_kind_t.usearch_scalar_f32_k, out error);
                 Debug.Assert(error == null, error);
             }
 
@@ -429,42 +462,38 @@ namespace usearch
 
         static void Main(string[] args)
         {
-            var data = JsonSerializer.Deserialize<float[][]>(File.ReadAllText("sample.fvecs"));
+            parse_vectors_from_file(@"..\..\..\..\..\sample.fvecs", out nuint vectors_count, out nuint vector_dimension, out var data);
+            vectors_count = vectors_count > 100000 ? 100000 : vectors_count;
 
-            nuint vectors_count = (nuint)(data?.Length ?? 0);
-            nuint vector_dimension = (nuint)(data?[0].Length ?? 0);
-            usearch_scalar_kind_t vector_kind = usearch_scalar_kind_t.usearch_scalar_f32_k;
-
-            fixed (float* ptr = data?[0])
+            fixed (float* ptr = data)
             {
                 // Test
                 test_init(vectors_count, vector_dimension);
-                test_add_vector(vectors_count, vector_dimension, ptr, vector_kind);
-                test_find_vector(vectors_count, vector_dimension, ptr, vector_kind);
-                test_remove_vector(vectors_count, vector_dimension, ptr, vector_kind);
-                test_save_load(vectors_count, vector_dimension, ptr, vector_kind);
-                test_view(vectors_count, vector_dimension, ptr, vector_kind);
+                test_add_vector(vectors_count, vector_dimension, ptr);
+                test_find_vector(vectors_count, vector_dimension, ptr);
+                test_remove_vector(vectors_count, vector_dimension, ptr);
+                test_save_load(vectors_count, vector_dimension, ptr);
+                test_view(vectors_count, vector_dimension, ptr);
 
-                //{
-                //    usearch_init_options_t opts = create_options(vector_dimension);
-                //    usearch_index_t idx = usearch_init(ref opts, out usearch_error_t? error);
-                //    usearch_reserve(idx, vectors_count, out error);
+                {
+                    usearch_init_options_t opts = create_options(vector_dimension);
+                    usearch_index_t idx = usearch_init(ref opts, out usearch_error_t? error);
+                    usearch_reserve(idx, vectors_count, out error);
 
-                //    for (usearch_label_t label = 0; label < vectors_count; ++label)
-                //        usearch_add(idx, label, ptr + label * vector_dimension, vector_kind, out error);
+                    var results_count = vectors_count;
+                    var labels = new usearch_label_t[results_count];
+                    var distances = new float[results_count];
 
-                //    var results_count = vectors_count - 1;
-                //    usearch_label_t[] labels = new usearch_label_t[results_count];
-                //    var distances = new float[results_count];
+                    for (usearch_label_t label = 0; label < vectors_count; ++label)
+                        usearch_add(idx, label, ptr + label * vector_dimension, usearch_scalar_kind_t.usearch_scalar_f32_k, out error);
 
-                //    var query_vector = ptr + results_count * vector_dimension;
-                //    var found_count = usearch_search(idx, query_vector, vector_kind, results_count, labels, distances, out error);
+                    var query_vector = ptr + (vectors_count - 1) * vector_dimension;
+                    nuint found_count = usearch_search(idx, query_vector, usearch_scalar_kind_t.usearch_scalar_f32_k, results_count, labels, distances, out error);
 
-                //    for (nuint i = 0; i < found_count; ++i)
-                //    {
-                //        Console.WriteLine($"{i}: {distances[i]}");
-                //    }
-                //}
+                    Console.Write($"found_count = {found_count}, results_count = {results_count}\n");
+                    for (nuint i = 0; i < vectors_count; i++)
+                        Console.Write($"{labels?[i]}: {distances?[i]:F8}\n");
+                }
             }
         }
     }
