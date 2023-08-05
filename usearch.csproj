@@ -6,22 +6,24 @@
 		<Nullable>enable</Nullable>
 		<Platforms>x64</Platforms>
 		<LangVersion>latest</LangVersion>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<OutputType>Exe</OutputType>
-
-		<DefineConstants Condition="'$(OS)' == 'Windows_NT'">WINDOWS</DefineConstants>
-		<DefineConstants Condition="$([System.String]::new('$(OS)').StartsWith('Unix'))">LINUX</DefineConstants>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="usearch\csharp\**" />
+	  <EmbeddedResource Remove="usearch\csharp\**" />
+	  <None Remove="usearch\csharp\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="usearch\csharp\libusearch.csproj" />
+	</ItemGroup>
 
 	<Target Name="usearch" BeforeTargets="Build">
 		<PropertyGroup>
-			<MakeProject>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\usearch\c'))</MakeProject>
-			<Command>"$(VsInstallRoot)\VC\Auxiliary\Build\vcvars64.bat" &amp;&amp; cd "$(MakeProject)" &amp;&amp; cl.exe /W4 /O2 /LD /Fe"libusearch.dll" lib.cpp /I. /I../include /I../fp16/include /I../robin-map/include</Command>
+			<UpstreamProject>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\usearch\csharp\$(OutDir)'))</UpstreamProject>
 		</PropertyGroup>
-		<WriteLinesToFile File="$(MakeProject)\build.bat" Lines="$(Command)" Overwrite="true" />
-		<Exec WorkingDirectory="$(MakeProject)" Command="cmd /C build.bat" />
-		<Delete Files="$(MakeProject)\build.bat" />
-		<Copy SourceFiles="$(MakeProject)\libusearch.dll" DestinationFolder="$(OutDir)" />
+		<Copy SourceFiles="$(UpstreamProject)\libusearch.dll" DestinationFolder="$(OutDir)" />
 	</Target>
 
 </Project>
