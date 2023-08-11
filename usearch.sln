@@ -5,8 +5,6 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "usearch", "usearch.csproj", "{E463201A-91CC-4C21-983A-D5158367B9C2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libusearch", "usearch\csharp\libusearch.csproj", "{FB54A807-D2E0-4019-BBFC-4B821EB7706F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -17,10 +15,6 @@ Global
 		{E463201A-91CC-4C21-983A-D5158367B9C2}.Debug|x64.Build.0 = Debug|x64
 		{E463201A-91CC-4C21-983A-D5158367B9C2}.Release|x64.ActiveCfg = Release|x64
 		{E463201A-91CC-4C21-983A-D5158367B9C2}.Release|x64.Build.0 = Release|x64
-		{FB54A807-D2E0-4019-BBFC-4B821EB7706F}.Debug|x64.ActiveCfg = Debug|x64
-		{FB54A807-D2E0-4019-BBFC-4B821EB7706F}.Debug|x64.Build.0 = Debug|x64
-		{FB54A807-D2E0-4019-BBFC-4B821EB7706F}.Release|x64.ActiveCfg = Release|x64
-		{FB54A807-D2E0-4019-BBFC-4B821EB7706F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -7,23 +7,30 @@
 		<Platforms>x64</Platforms>
 		<LangVersion>latest</LangVersion>
 		<OutputType>Exe</OutputType>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
-
-	<ItemGroup>
-	  <Compile Remove="usearch\csharp\**" />
-	  <EmbeddedResource Remove="usearch\csharp\**" />
-	  <None Remove="usearch\csharp\**" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="usearch\csharp\libusearch.csproj" />
-	</ItemGroup>
 
 	<Target Name="usearch" BeforeTargets="Build">
 		<PropertyGroup>
-			<UpstreamProject>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\usearch\csharp\$(OutDir)'))</UpstreamProject>
+			<WorkingDirectory>usearch\c</WorkingDirectory>
+			<Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+			<CompileBatPath>usearch-dotnet-build.bat</CompileBatPath>
 		</PropertyGroup>
-		<Copy SourceFiles="$(UpstreamProject)\libusearch.dll" DestinationFolder="$(OutDir)" />
+
+		<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+			<CFLAGS>/EHsc /W0 /Od /Zi /MDd /arch:AVX2 /fp:precise</CFLAGS>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+			<CFLAGS>/EHsc /W0 /O2 /MD /arch:AVX2 /fp:precise</CFLAGS>
+		</PropertyGroup>
+
+		<Delete Files="$(WorkingDirectory)\$(CompileBatPath)" />
+		<WriteLinesToFile File="$(WorkingDirectory)\$(CompileBatPath)" Lines="@call &quot;$(VsInstallRoot)\VC\Auxiliary\Build\vcvarsall.bat&quot; x64" Overwrite="false" Encoding="ASCII" />
+		<WriteLinesToFile File="$(WorkingDirectory)\$(CompileBatPath)" Lines="@cl.exe %*" Overwrite="false" Encoding="ASCII" />
+
+		<Exec Command="$(CompileBatPath) $(CFLAGS) /LD /Feusearch.dll lib.cpp /I. /I../include /I../fp16/include /I../robin-map/include" WorkingDirectory="$(WorkingDirectory)" />
+		<Delete Files="$(WorkingDirectory)\$(CompileBatPath)" />
+		<Copy SourceFiles="$(WorkingDirectory)\usearch.dll" DestinationFiles="bin\$(Platform)\$(Configuration)\$(TargetFramework)\libusearch\usearch.dll" />
 	</Target>
 
 </Project>
